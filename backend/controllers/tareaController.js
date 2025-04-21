@@ -1,33 +1,41 @@
-import Tarea from '../models/Tarea';
+import Tarea from '../models/Tarea.js';
+import mongoose from 'mongoose'; 
 
-// Crear una tarea (asignar a empleado y proyecto)
-export const createTarea = async (req, res) => {
-  const { titulo, empleado, proyecto, fechaFin, estado } = req.body;
+export const getTareas = async (req, res) => {
   try {
-    const nuevaTarea = new Tarea({ 
-      titulo, 
-      empleado, 
-      proyecto, 
-      fechaFin, 
-      estado 
-    });
-    const tareaGuardada = await nuevaTarea.save();
-    res.status(201).json(tareaGuardada);
-  } catch (error) {
-    res.status(400).json({ message: error.message });
+    const tareas = await Tarea.find();
+    res.status(200).json(tareas);
+  } catch (err) {
+    res.status(500).json({ error: 'Error al obtener las tareas' });
   }
 };
 
-// Filtrar tareas por rango de fechas
+export const createTarea = async (req, res) => {
+  const { titulo, empleado, proyecto, fechaFin, estado } = req.body;
+  try {
+    const nuevaTarea = new Tarea({
+      titulo,
+      empleado,
+      proyecto,
+      fechaFin,
+      estado
+    });
+    await nuevaTarea.save();
+    res.status(201).json(nuevaTarea);
+  } catch (err) {
+    res.status(500).json({ error: 'Error al crear la tarea' });
+  }
+};
+
 export const getTareasPorFecha = async (req, res) => {
   const { fechaInicio, fechaFin } = req.query;
   try {
     const tareas = await Tarea.find({
       fechaInicio: { $gte: new Date(fechaInicio) },
       fechaFin: { $lte: new Date(fechaFin) }
-    }).populate('empleado proyecto'); // Incluye datos relacionados
-    res.json(tareas);
-  } catch (error) {
-    res.status(500).json({ message: error.message });
+    });
+    res.status(200).json(tareas);
+  } catch (err) {
+    res.status(500).json({ error: 'Error al obtener tareas por fecha' });
   }
 };
